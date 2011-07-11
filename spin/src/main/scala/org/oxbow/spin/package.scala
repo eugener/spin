@@ -47,10 +47,10 @@ package object spin {
     type WindowCloseEvent = Window#CloseEvent
     
     implicit def button2x( b: Button ) = new {
-	    implicit def addActon( action: Action ) = Option(action).foreach( _.associateWith(b))
+	    implicit def add( action: Action ) = Option(action).foreach( _.attachTo(b))
 	}
     
     implicit def menuItem2x( m: MenuItem ) = new {
-	    implicit def addActon( action: Action ) = Option(action).foreach( _.associateWith(m))
+	    implicit def add( action: Action ) = Option(action).foreach( _.attachTo(m))
 	}
 }

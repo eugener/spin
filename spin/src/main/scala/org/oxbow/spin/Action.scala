@@ -34,8 +34,8 @@ trait Action {
     def tooltip: String = props.getOrElse(Tooltip, "").asInstanceOf[String]
     def tooltip_=( tooltip: String ) = setProp( (Tooltip, tooltip ))
     
-    protected[spin] def associateWith( cmpt: AbstractComponent ) = Option(cmpt).foreach( components += setup(_) )
-    protected[spin] def associateWith( menuItem: MenuItem )      = Option(menuItem).foreach( components += setup(_) ) 
+    protected[spin] def attachTo( cmpt: AbstractComponent ) = Option(cmpt).foreach( components += setup(_) )
+    protected[spin] def attachTo( menuItem: MenuItem )      = Option(menuItem).foreach( components += setup(_) ) 
     
     private def setup( c: AnyRef ): ComponentProxy = {
         ComponentProxy(c).caption(caption).enabled(enabled).icon(icon).tooltip(tooltip).action(this)

@@ -29,8 +29,8 @@ class TestApp extends com.vaadin.Application {
         )
         
         val button = new Button
-        button.addActon( action )
-        menuItem.addActon( action )
+        button.add( action )
+        menuItem.add( action )
         
         
 //        action.enabled = false
