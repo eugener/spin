@@ -2,8 +2,13 @@ package org.oxbow.spin
 import com.vaadin.ui.AbstractComponent
 import com.vaadin.ui.MenuBar.Command
 
-// TODO: Reference equality, hash code
+/**
+ * Command pattern which can be attached to Buttons and Menus
+ * Any change of the action properties is immediately reflected on attached components
+ */
 trait Action { 
+
+    // TODO: Reference equality, hash code
 
     import ActionProperty._
 	    
