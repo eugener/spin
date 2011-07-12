@@ -5,12 +5,12 @@ import java.util.UUID
 
 class TestApp extends com.vaadin.Application {
 
-    private var window: Window = null
-    
+//    private var window: Window = null
+//    
     val action = new Action{
         caption="Click Me"
         tooltip="Tooltip" 
-        def perform( source: AnyRef ) = window.addComponent(new Label("Thank you for clicking " + source.getClass ))
+        def perform( source: AnyRef ) = getMainWindow.addComponent(new Label("Thank you for clicking " + source.getClass ))
     }
     
     private final val actions = List(
@@ -31,26 +31,24 @@ class TestApp extends com.vaadin.Application {
 
     override def init() = {
         
-        window = new Window("Spin Test Application")
-
         val button = new Button
         
-        action.enabled = false
+//        action.enabled = false
         action.caption = "My New Action"
 
         button.add( action )
         
         val model = new BeanContainer[String, Person]( classOf[Person] )
         model.setBeanIdProperty("id")
-        model.addBean( Person("Ashim", "Mandal", 32 ))
-        model.addBean( Person("Ashim", "Mandal", 32 ))
-        model.addBean( Person("Ashim", "Mandal", 32 ))
-        model.addBean( Person("Ashim", "Mandal", 32 ))
+        for( i<-1 until 10 ) {
+        	model.addBean( Person("Ashim", "Mandal", 32 ))
+        }
         
         val table = new Table("", model)
         table.setSelectable( true );
         table.addActionHandler( ActionContainer.contextMenu(List(action,action)))
             
+        val window = new Window("Spin Test Application")
         window.addComponent(menubar);
         window.addComponent(button)
         window.addComponent(table)

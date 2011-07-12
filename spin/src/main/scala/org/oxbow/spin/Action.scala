@@ -1,15 +1,16 @@
 package org.oxbow.spin
+
 import com.vaadin.ui.MenuBar.Command
 import com.vaadin.ui.AbstractComponent
+import com.vaadin.event.{Action => VaadinAction}
 
 /**
  * Command pattern which can be attached to Buttons and Menus
  * Any change of the action properties is immediately reflected on attached components
  */
-trait Action { 
-
     // TODO: Reference equality, hash code
-
+trait Action extends Serializable {
+    
     import ActionProperty._
 	    
     protected def perform( source: AnyRef ): Unit
@@ -82,7 +83,7 @@ private object ActionProperty extends Enumeration {
 	val Enabled, Caption, Icon, Tooltip = Value
 }
 
-private case class ComponentProxy( private val c: Any ) {
+private case class ComponentProxy( private val c: Any )  {
     
     def caption( caption: String ): ComponentProxy = c match {
        case c: AbstractComponent => c.setCaption(caption); this
@@ -113,10 +114,12 @@ private case class ComponentProxy( private val c: Any ) {
     
 }
 
-private[spin] class ContextAction( val action: Action )  extends com.vaadin.event.Action( action.caption, action.icon.orNull )
 
 object ActionContainer {
     
+    /** 
+     * Creates menu bar from sequence of actions
+     */
     def menuBar( actions: Seq[ActionGroup] ): MenuBar = {
         
         type MenuParent = { def addItem( s: String, c: com.vaadin.ui.MenuBar.Command ): MenuItem }
@@ -126,7 +129,7 @@ object ActionContainer {
             action.attachTo(item)
 	        action match {		
 	            case g: ActionGroup => g.actions.foreach( process( _, createChild(item)))
-	            case a: Action => // do nothing
+	            case _ => // do nothing
 	        }
         }
         
@@ -135,16 +138,19 @@ object ActionContainer {
     	menuBar
     	
     }
+
     
+    private case class ContextAction( val action: Action ) extends VaadinAction( action.caption, action.icon.orNull )
+
+    /**
+     * Creates context bar from sequence of actions
+     */
     def contextMenu( actions: Seq[Action]): com.vaadin.event.Action.Handler = {
-        type VaadinAction = com.vaadin.event.Action
         new com.vaadin.event.Action.Handler {
             
-             def getActions(target: AnyRef, sender: AnyRef): Array[VaadinAction] = {
-                 actions.map( new ContextAction(_)).toArray
-             }
+             def getActions(target: AnyRef, sender: AnyRef) = actions.map( ContextAction ).toArray
              
-             def handleAction( action: VaadinAction, sender: AnyRef, target: AnyRef ): Unit = action match {
+             def handleAction( action: VaadinAction, sender: AnyRef, target: AnyRef ) = action match {
                  case a: ContextAction => a.action.execute(sender)
                  case _ =>    
              }
