@@ -33,6 +33,7 @@ package object spin {
     type Resource = com.vaadin.terminal.Resource
     type SplitterClickEvent = com.vaadin.ui.AbstractSplitPanel#SplitterClickEvent
     type TextArea = com.vaadin.ui.TextArea
+    type Table= com.vaadin.ui.Table
     type TextField = com.vaadin.ui.TextField
     type ThemeResource = com.vaadin.terminal.ThemeResource
     type TreeCollapseEvent = com.vaadin.ui.Tree#CollapseEvent

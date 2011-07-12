@@ -1,45 +1,68 @@
 package org.oxbow.spin
+import com.vaadin.data.util.BeanContainer
+import scala.reflect.BeanProperty
+import java.util.UUID
 
 class TestApp extends com.vaadin.Application {
 
     private var window: Window = null
-    private val menubar = new MenuBar();
-
-    override def init() = {
-        
-        window = new Window("Spin Test Application")
-        
-        val file1 = menubar.addItem("File 1", null)
-        val file2 = menubar.addItem("File 2", null)
-        val file3 = menubar.addItem("File 3", null)
-        val menuItem = file3.addItem("New", null)
-
-        val action = new Action{
-            caption="Click Me"
-            tooltip="Tooltip" 
-            def perform( source: AnyRef ) = window.addComponent(new Label("Thank you for clicking " + source.getClass ))
-        }
-        
-        new ActionGroup(
-            new ActionGroup(
+    
+    val action = new Action{
+        caption="Click Me"
+        tooltip="Tooltip" 
+        def perform( source: AnyRef ) = window.addComponent(new Label("Thank you for clicking " + source.getClass ))
+    }
+    
+    private final val actions = List(
+         ActionGroup( "Menu 1" ),
+         ActionGroup( "Menu 2" ),
+         ActionGroup( "Menu 3",
+            ActionGroup( "Submenu",
 		        action, 
 		        action
 		    ),
 		    action
-        )
+        ),
+        ActionGroup( "Menu 4" ),
+        ActionGroup( "Menu 5" )
+    )
+    
+    private final val menubar = ActionContainer.menuBar( actions )
+
+    override def init() = {
         
+        window = new Window("Spin Test Application")
+
         val button = new Button
-        button.add( action )
-        menuItem.add( action )
         
-        
-//        action.enabled = false
+        action.enabled = false
         action.caption = "My New Action"
+
+        button.add( action )
         
+        val model = new BeanContainer[String, Person]( classOf[Person] )
+        model.setBeanIdProperty("id")
+        model.addBean( Person("Ashim", "Mandal", 32 ))
+        model.addBean( Person("Ashim", "Mandal", 32 ))
+        model.addBean( Person("Ashim", "Mandal", 32 ))
+        model.addBean( Person("Ashim", "Mandal", 32 ))
+        
+        val table = new Table("", model)
+        table.setSelectable( true );
+        table.addActionHandler( ActionContainer.contextMenu(List(action,action)))
+            
         window.addComponent(menubar);
         window.addComponent(button)
+        window.addComponent(table)
         setMainWindow(window)
         
+    }
+    
+    case class Person (
+        @BeanProperty val firstName: String,
+        @BeanProperty val lastName: String,
+        @BeanProperty val age: Int ) {
+        @BeanProperty val id = UUID.randomUUID.toString
     }
     
 }

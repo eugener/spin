@@ -1,6 +1,6 @@
 package org.oxbow.spin
-import com.vaadin.ui.AbstractComponent
 import com.vaadin.ui.MenuBar.Command
+import com.vaadin.ui.AbstractComponent
 
 /**
  * Command pattern which can be attached to Buttons and Menus
@@ -12,7 +12,9 @@ trait Action {
 
     import ActionProperty._
 	    
-    def perform( source: AnyRef ): Unit
+    protected def perform( source: AnyRef ): Unit
+    
+    def execute( source: AnyRef ): Unit = if (enabled) perform(source)
     
 //    override def toString = "Action ['%s', enabled:%s]".format(caption, enabled.toString)
     
@@ -38,7 +40,8 @@ trait Action {
     protected[spin] def attachTo( menuItem: MenuItem )      = Option(menuItem).foreach( components += setup(_) ) 
     
     private def setup( c: AnyRef ): ComponentProxy = {
-        ComponentProxy(c).caption(caption).enabled(enabled).icon(icon).tooltip(tooltip).action(this)
+        ComponentProxy(c).caption(caption).enabled(enabled).icon(icon).tooltip(tooltip).
+        action( this )
     }
     
     private def propertyChange( prop: ActionProperty ) = {
@@ -50,18 +53,27 @@ trait Action {
         }
     }
     
+     protected[spin] def createCommand: Command = new Command { 
+    	def menuSelected( selectedItem: MenuBar#MenuItem) = perform(selectedItem) 
+	 } 
+    
 }
 
-class ActionGroup( title: String, actions: List[Action] ) extends Action {
+object ActionGroup {
     
-    caption = title
+    def apply( title: String, actions: Action* ): ActionGroup = new ActionGroup( title, actions.toSeq )
+    def apply( actions: Action* ): ActionGroup = new ActionGroup( "", actions.toList )
+
+    def apply( title: String, actions: List[Action] ): ActionGroup = new ActionGroup( title, actions )
+    def apply( actions: List[Action] ): ActionGroup = new ActionGroup( "", actions )
+
+}
+
+class ActionGroup( override val caption: String, val actions: Seq[Action] ) extends Action {
     
-    def this( title: String, actions: Action* ) = this( title, actions.toList )
-    def this( actions: Action* ) = this( "", actions.toList )
-//    
-//    def this( title: String )( a: Action* ) = this(title)( a.toList ) 
-//    
+//    caption = title
     final def perform( source: AnyRef ): Unit = {}
+    protected[spin] override def createCommand: Command = null
     
 }
 
@@ -94,12 +106,51 @@ private case class ComponentProxy( private val c: Any ) {
     
     def action( a: Action ): ComponentProxy = c match {
        case b: Button => b.addListener( new ButtonClickListener {
-	       def buttonClick(event: ButtonClickEvent) = a.perform( event.getSource )
+	       def buttonClick(event: ButtonClickEvent) = a.execute( event.getSource )
 	   }); this 
-	   case m: MenuItem => {
-		  m.setCommand( new Command { def menuSelected( selectedItem: MenuBar#MenuItem) = a.perform(selectedItem) }); this
-	   }
+	   case m: MenuItem => m.setCommand( a.createCommand ); this
     }
     
+}
+
+private[spin] class ContextAction( val action: Action )  extends com.vaadin.event.Action( action.caption, action.icon.orNull )
+
+object ActionContainer {
+    
+    def menuBar( actions: Seq[ActionGroup] ): MenuBar = {
+        
+        type MenuParent = { def addItem( s: String, c: com.vaadin.ui.MenuBar.Command ): MenuItem }
+        def createChild( parent: MenuParent ): MenuItem = parent.addItem("",null) 
+        
+        def process( action: Action, item: MenuItem ): Unit = {
+            action.attachTo(item)
+	        action match {		
+	            case g: ActionGroup => g.actions.foreach( process( _, createChild(item)))
+	            case a: Action => // do nothing
+	        }
+        }
+        
+        val menuBar = new MenuBar
+    	actions.foreach{ process( _, createChild(menuBar)) }
+    	menuBar
+    	
+    }
+    
+    def contextMenu( actions: Seq[Action]): com.vaadin.event.Action.Handler = {
+        type VaadinAction = com.vaadin.event.Action
+        new com.vaadin.event.Action.Handler {
+            
+             def getActions(target: AnyRef, sender: AnyRef): Array[VaadinAction] = {
+                 actions.map( new ContextAction(_)).toArray
+             }
+             
+             def handleAction( action: VaadinAction, sender: AnyRef, target: AnyRef ): Unit = action match {
+                 case a: ContextAction => a.action.execute(sender)
+                 case _ =>    
+             }
+            
+        }
+        
+    }
 }
 
