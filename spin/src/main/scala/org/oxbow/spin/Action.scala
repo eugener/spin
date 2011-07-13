@@ -12,6 +12,7 @@ import com.vaadin.event.{Action => VaadinAction}
 trait Action extends Serializable {
     
     import ActionProperty._
+    
 	    
     protected def perform( source: AnyRef ): Unit
     
