@@ -38,12 +38,13 @@ trait Action extends Serializable {
    def tooltip: String = props.getOrElse(Tooltip, "").asInstanceOf[String]
    def tooltip_=(tooltip: String) = setProp((Tooltip, tooltip))
 
-   protected[spin] def attachTo(cmpt: AbstractComponent) = Option(cmpt).foreach(components += setup(_))
+   protected[spin] def attachTo(cmpt: AbstractComponent, toolbar:Boolean = false ) = 
+      Option(cmpt).foreach(components += setup(_, toolbar))
    protected[spin] def attachTo(menuItem: MenuItem) = Option(menuItem).foreach(components += setup(_))
 
-   private def setup(c: AnyRef): ComponentProxy = {
-      ComponentProxy(c).caption(caption).enabled(enabled).icon(icon).tooltip(tooltip).
-         action(this)
+   private def setup(c: AnyRef, toolbar: Boolean = false ): ComponentProxy = {
+      ComponentProxy(c).enabled(enabled).icon(icon).tooltip(tooltip).action(this)
+      .caption( if (( !toolbar || icon.isEmpty )) caption else "" )
    }
 
    private def propertyChange(prop: ActionProperty) = {
@@ -83,29 +84,29 @@ class ActionGroup(override val caption: String, val actions: Seq[Action]) extend
 
 }
 
-private case class ComponentProxy(val c: Any) {
+private case class ComponentProxy(val target: Any) {
 
-   def caption(caption: String): ComponentProxy = c match {
+   def caption(caption: String): ComponentProxy = target match {
       case c: AbstractComponent => c.setCaption(caption); this
       case m: MenuItem => m.setText(caption); this
    }
 
-   def enabled(enabled: Boolean): ComponentProxy = c match {
+   def enabled(enabled: Boolean): ComponentProxy = target match {
       case c: AbstractComponent => c.setEnabled(enabled); this
       case m: MenuItem => m.setEnabled(enabled); this
    }
 
-   def icon(icon: Option[ThemeResource]): ComponentProxy = c match {
+   def icon(icon: Option[ThemeResource]): ComponentProxy = target match {
       case c: AbstractComponent => icon.foreach(c.setIcon); this
       case m: MenuItem => icon.foreach(m.setIcon); this
    }
 
-   def tooltip(tooltip: String): ComponentProxy = c match {
+   def tooltip(tooltip: String): ComponentProxy = target match {
       case c: AbstractComponent => c.setDescription(tooltip); this
       case m: MenuItem => m.setDescription(tooltip); this
    }
 
-   def action(a: Action): ComponentProxy = c match {
+   def action(a: Action): ComponentProxy = target match {
       case b: Button =>
          b.addListener(new ButtonClickListener {
             def buttonClick(event: ButtonClickEvent) = a.execute(event.getSource)
@@ -159,14 +160,15 @@ object ActionContainer {
    }
 
    /**
-    * Creates toolbar from sequence of actions
+    * Creates tool bar from sequence of actions
     */
    def toolbar(actions: Seq[Action], horizontal: Boolean = true): AbstractOrderedLayout = {
+      //TODO: has to work with action trees and use drop-down buttons
       val layout = if (horizontal) new HorizontalLayout else new VerticalLayout
       layout.setSpacing(true)
       actions.foreach { a =>
          val button = new Button
-         a.attachTo(button)
+         a.attachTo(button, true)
          layout.addComponent(button)
       }
       layout
