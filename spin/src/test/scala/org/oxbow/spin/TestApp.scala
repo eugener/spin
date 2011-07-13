@@ -51,6 +51,7 @@ class TestApp extends com.vaadin.Application {
         val window = new Window("Spin Test Application")
         window.addComponent(menubar);
         window.addComponent(button)
+        window.addComponent( ActionContainer.toolbar(List(action,action)) )
         window.addComponent(table)
         setMainWindow(window)
         
