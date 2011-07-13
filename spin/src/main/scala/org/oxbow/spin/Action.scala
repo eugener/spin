@@ -12,7 +12,6 @@ import com.vaadin.event.{Action => VaadinAction}
 trait Action extends Serializable {
     
     import ActionProperty._
-    
 	    
     protected def perform( source: AnyRef ): Unit
     
@@ -20,9 +19,9 @@ trait Action extends Serializable {
     
 //    override def toString = "Action ['%s', enabled:%s]".format(caption, enabled.toString)
     
-    private val components = scala.collection.mutable.ListBuffer[ComponentProxy]()
+    private lazy val components = scala.collection.mutable.ListBuffer[ComponentProxy]()
     
-    private val props = scala.collection.mutable.Map[ActionProperty,Any]()
+    private lazy val props = scala.collection.mutable.Map[ActionProperty,Any]()
     
     private def setProp( p: Tuple2[ActionProperty,Any] ): Unit = { props += p; propertyChange(p._1) }
 
@@ -61,6 +60,11 @@ trait Action extends Serializable {
     
 }
 
+private object ActionProperty extends Enumeration {
+	type ActionProperty = Value
+	val Enabled, Caption, Icon, Tooltip = Value
+}
+
 object ActionGroup {
     
     def apply( title: String, actions: Action* ): ActionGroup = new ActionGroup( title, actions.toSeq )
@@ -73,18 +77,12 @@ object ActionGroup {
 
 class ActionGroup( override val caption: String, val actions: Seq[Action] ) extends Action {
     
-//    caption = title
     final def perform( source: AnyRef ): Unit = {}
     protected[spin] override def createCommand: Command = null
     
 }
 
-private object ActionProperty extends Enumeration {
-	type ActionProperty = Value
-	val Enabled, Caption, Icon, Tooltip = Value
-}
-
-private case class ComponentProxy( private val c: Any )  {
+private case class ComponentProxy( val c: Any )  {
     
     def caption( caption: String ): ComponentProxy = c match {
        case c: AbstractComponent => c.setCaption(caption); this
