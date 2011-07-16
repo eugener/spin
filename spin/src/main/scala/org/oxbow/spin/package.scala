@@ -2,6 +2,7 @@ package org.oxbow
 
 package object spin {
 
+    type ActionHandler = com.vaadin.event.Action.Handler 
     type Alignment = com.vaadin.ui.Alignment
     type BeanItem[A] = com.vaadin.data.util.BeanItem[A]
     type BeanItemContainer[A] = com.vaadin.data.util.BeanItemContainer[A]

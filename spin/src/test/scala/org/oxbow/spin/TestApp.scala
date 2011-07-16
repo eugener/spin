@@ -5,29 +5,27 @@ import java.util.UUID
 
 class TestApp extends com.vaadin.Application {
 
-//    private var window: Window = null
-//    
-    val action = new Action{
+    val action = new Action {
         caption="Click Me"
         tooltip="Tooltip" 
         def perform( source: AnyRef ) = getMainWindow.addComponent(new Label("Thank you for clicking " + source.getClass ))
     }
     
     private final val actions = List(
-         ActionGroup( "Menu 1" ),
-         ActionGroup( "Menu 2" ),
-         ActionGroup( "Menu 3",
-            ActionGroup( "Submenu",
+         ActionSeq( "Menu 1" ),
+         ActionSeq( "Menu 2" ),
+         ActionSeq( "Menu 3",
+            ActionSeq( "Submenu",
 		        action, 
 		        action
 		    ),
 		    action
         ),
-        ActionGroup( "Menu 4" ),
-        ActionGroup( "Menu 5" )
+        ActionSeq( "Menu 4" ),
+        ActionSeq( "Menu 5" )
     )
     
-    private final val menubar = ActionContainer.menuBar( actions )
+    private final val menubar = ActionContainerFactory.menuBar( actions )
 
     override def init() = {
         
@@ -46,12 +44,12 @@ class TestApp extends com.vaadin.Application {
         
         val table = new Table("", model)
         table.setSelectable( true );
-        table.addActionHandler( ActionContainer.contextMenu(List(action,action)))
+        table.addActionHandler( ActionContainerFactory.contextMenu(List(action,action)))
             
         val window = new Window("Spin Test Application")
         window.addComponent(menubar);
         window.addComponent(button)
-        window.addComponent( ActionContainer.toolbar(List(action,action)) )
+        window.addComponent( ActionContainerFactory.toolbar(List(action,action)) )
         window.addComponent(table)
         setMainWindow(window)
         
