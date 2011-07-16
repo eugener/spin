@@ -62,8 +62,8 @@ trait Action extends Serializable {
    }
    
    protected[spin] def asButtonListener: ButtonClickListener = 
-      new ButtonClickListener { def buttonClick(event: ButtonClickEvent) = execute(event.getSource) } 
-
+      new ButtonClickListener { def buttonClick(event: ButtonClickEvent) = execute(event.getSource) }
+   
    private[Action] case class ComponentProxy(val target: Any) {
 	
 	   def setProp(p: AttrEntry): Unit = p._1 match {
@@ -103,6 +103,11 @@ trait Action extends Serializable {
 }
 
 
+/**
+ * Represents Action sequence which may act like Action itself. 
+ * This is helpful for creating action trees, which than can be transformed into buttons, menus, toolbars.
+ * 
+ */
 object ActionSeq {
 
    def apply(title: String, actions: Action*): ActionSeq = new ActionSeq(title, actions.toSeq)
@@ -113,12 +118,7 @@ object ActionSeq {
 
 }
 
-/**
- * Represents Action sequence which may act like Action itself. 
- * This is helpful for creating action trees, which than can be transformed into buttons, menus, toolbars.
- * 
- */
-class ActionSeq(override val caption: String, private val actions: Seq[Action]) extends Action with Seq[Action] {
+class ActionSeq(override val caption: String, val actions: Seq[Action]) extends Action with Seq[Action] {
 
    final def perform(source: AnyRef): Unit = {}
    protected[spin] override def asMenuCommand = null    // menu groups should not execute actions
