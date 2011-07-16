@@ -5,8 +5,6 @@ import java.util.UUID
 
 class TestApp extends com.vaadin.Application {
 
-//    private var window: Window = null
-//    
     val action = new Action{
         caption="Click Me"
         tooltip="Tooltip" 
