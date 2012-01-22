@@ -37,9 +37,9 @@ package object spin {
     type Table= com.vaadin.ui.Table
     type TextField = com.vaadin.ui.TextField
     type ThemeResource = com.vaadin.terminal.ThemeResource
-    type TreeCollapseEvent = com.vaadin.ui.Tree#CollapseEvent
+    type TreeCollapseEvent = com.vaadin.ui.Tree.CollapseEvent
     type TreeCollapseListener = com.vaadin.ui.Tree.CollapseListener
-    type TreeExpandEvent = com.vaadin.ui.Tree#ExpandEvent
+    type TreeExpandEvent = com.vaadin.ui.Tree.ExpandEvent
     type TreeExpandListener = com.vaadin.ui.Tree.ExpandListener
     type VaadinApplication = com.vaadin.Application
     type ValueChangeEvent = com.vaadin.data.Property.ValueChangeEvent

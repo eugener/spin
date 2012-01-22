@@ -1,4 +1,5 @@
 package org.oxbow.spin
+
 import com.vaadin.data.util.BeanContainer
 import scala.reflect.BeanProperty
 import java.util.UUID
@@ -38,8 +39,9 @@ class TestApp extends com.vaadin.Application {
         
         val model = new BeanContainer[String, Person]( classOf[Person] )
         model.setBeanIdProperty("id")
+       
         for( i<-1 until 10 ) {
-        	model.addBean( Person("Ashim", "Mandal", 32 ))
+        	model.addBean( Person("Ashim", "Mandal", 32 )) 
         }
         
         val table = new Table("", model)
@@ -58,8 +60,7 @@ class TestApp extends com.vaadin.Application {
     case class Person (
         @BeanProperty val firstName: String,
         @BeanProperty val lastName: String,
-        @BeanProperty val age: Int ) {
-        @BeanProperty val id = UUID.randomUUID.toString
-    }
+        @BeanProperty val age: Int, 
+        @BeanProperty val id: String = UUID.randomUUID.toString ) 
     
 }
