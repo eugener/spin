@@ -19,8 +19,6 @@ trait Action extends Serializable {
 
    import Attribute._   
    
-   private[spin] type AttrEntry = Tuple2[Attribute, Any]
-   
    def execute(source: AnyRef): Unit = if (enabled) perform(source)
    protected def perform(source: AnyRef): Unit
 
@@ -29,24 +27,24 @@ trait Action extends Serializable {
    private lazy val components = scala.collection.mutable.ListBuffer[ComponentProxy]()
    private lazy val props = scala.collection.mutable.Map[Attribute, Any]()
 
-   private def setProp(p: AttrEntry): Unit = {
-      if ( props.get(p._1) != p._2) {
-         props += p
-         propertyChange(p)
+   private def setProp(attr: Attribute, value: Any): Unit = {
+      if ( props.get(attr) != value) {
+         props += attr -> value
+         propertyChange( attr, value )
       }
    }
    
    def caption: String = props.getOrElse(Caption, "").asInstanceOf[String]
-   def caption_=(caption: String) = setProp( Caption -> caption)
+   def caption_=(caption: String) = setProp( Caption, caption )
 
    def enabled: Boolean = props.getOrElse(Enabled, true).asInstanceOf[Boolean]
-   def enabled_=(enabled: Boolean) = setProp( Enabled -> enabled )
+   def enabled_=(enabled: Boolean) = setProp( Enabled, enabled )
 
    def icon: Option[ThemeResource] = props.getOrElse(Icon, None).asInstanceOf[Option[ThemeResource]]
-   def icon_=(icon: Option[ThemeResource]) = setProp( Icon -> icon )
+   def icon_=(icon: Option[ThemeResource]) = setProp( Icon,icon )
 
    def tooltip: String = props.getOrElse(Tooltip, "").asInstanceOf[String]
-   def tooltip_=(tooltip: String) = setProp( Tooltip -> tooltip)
+   def tooltip_=(tooltip: String) = setProp( Tooltip, tooltip)
 
    protected[spin] def attachTo(cmpt: AbstractComponent, toolbar:Boolean = false ) = Option(cmpt).foreach(components += setup(_, toolbar))
    protected[spin] def attachTo(menuItem: MenuItem) = Option(menuItem).foreach(components += setup(_))
@@ -56,7 +54,7 @@ trait Action extends Serializable {
       .caption( if (( !toolbar || icon.isEmpty )) caption else "" )
    }
 
-   private def propertyChange( prop: AttrEntry ) = components.foreach( _.setProp(prop))
+   private def propertyChange( attr: Attribute, value: Any ) = components.foreach( _.setProp(attr, value))
 
    protected[spin] def asMenuCommand: Command = new Command {
       def menuSelected(selectedItem: MenuBar#MenuItem) = execute(selectedItem)
@@ -67,11 +65,11 @@ trait Action extends Serializable {
    
    private[Action] case class ComponentProxy(val target: Any) {
 	
-	   def setProp(p: AttrEntry): Unit = p match {
-	       case (Caption,value)  => caption(value.asInstanceOf[String])
-	       case (Enabled,value)  => enabled(value.asInstanceOf[Boolean])
-	       case (Icon,value)     => icon(value.asInstanceOf[Option[ThemeResource]])
-	       case (Tooltip, value) => tooltip(value.asInstanceOf[String])
+	   def setProp(attr: Attribute, value: Any): Unit = attr match {
+	       case Caption  => caption(value.asInstanceOf[String])
+	       case Enabled  => enabled(value.asInstanceOf[Boolean])
+	       case Icon     => icon(value.asInstanceOf[Option[ThemeResource]])
+	       case Tooltip  => tooltip(value.asInstanceOf[String])
 	   }
 	         
 	   def caption(caption: String): ComponentProxy = target match {
@@ -174,7 +172,7 @@ object ActionContainerFactory {
 
    }
 
-   def createToolbar( horizontal: Boolean ): AbstractLayout = {
+   private[spin] def createToolbar( horizontal: Boolean ): AbstractLayout = {
        val layout = if (horizontal) new HorizontalLayout else new VerticalLayout
        layout.setSpacing(true)
        layout
