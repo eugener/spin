@@ -4,6 +4,7 @@ import com.vaadin.ui.MenuBar.Command
 import com.vaadin.ui.AbstractComponent
 import com.vaadin.event.{ Action => VaadinAction }
 import com.vaadin.ui.AbstractOrderedLayout
+import com.vaadin.ui.AbstractLayout
 
 /**
  * Command which can be attached to buttons and menu items
@@ -66,13 +67,13 @@ trait Action extends Serializable {
    
    private[Action] case class ComponentProxy(val target: Any) {
 	
-	   def setProp(p: AttrEntry): Unit = p._1 match {
-	      case Caption => caption(p._2.asInstanceOf[String])
-	      case Enabled => enabled(p._2.asInstanceOf[Boolean])
-	      case Icon    => icon(p._2.asInstanceOf[Option[ThemeResource]])
-	      case Tooltip => tooltip(p._2.asInstanceOf[String])
+	   def setProp(p: AttrEntry): Unit = p match {
+	       case (Caption,value)  => caption(value.asInstanceOf[String])
+	       case (Enabled,value)  => enabled(value.asInstanceOf[Boolean])
+	       case (Icon,value)     => icon(value.asInstanceOf[Option[ThemeResource]])
+	       case (Tooltip, value) => tooltip(value.asInstanceOf[String])
 	   }
-	
+	         
 	   def caption(caption: String): ComponentProxy = target match {
 	      case c: AbstractComponent => c.setCaption(caption); this
 	      case m: MenuItem => m.setText(caption); this
@@ -105,7 +106,7 @@ trait Action extends Serializable {
 
 /**
  * Represents Action sequence which may act like Action itself. 
- * This is helpful for creating action trees, which than can be transformed into buttons, menus, toolbars.
+ * This is helpful for creating action trees, which than can be transformed into buttons, menus, tool bars.
  * 
  */
 object ActionSeq {
@@ -173,15 +174,22 @@ object ActionContainerFactory {
 
    }
 
+   def createToolbar( horizontal: Boolean ): AbstractLayout = {
+       val layout = if (horizontal) new HorizontalLayout else new VerticalLayout
+       layout.setSpacing(true)
+       layout
+   }
+   
+   
    /**
     * Creates tool bar from sequence of actions. 
     * Currently only top level actions
     * TODO: use drop-down buttons for action trees
     */
-   def toolbar(actions: Seq[Action], horizontal: Boolean = true): AbstractOrderedLayout = {
+   def toolbar( actions: Seq[Action], horizontal: Boolean = true, 
+                buildToolbar: (Boolean => AbstractLayout) = createToolbar ): AbstractLayout = {
       //TODO: has to work with action trees and use drop-down buttons
-      val layout = if (horizontal) new HorizontalLayout else new VerticalLayout
-      layout.setSpacing(true)
+      val layout = buildToolbar(horizontal)
       actions.foreach { a =>
          val button = new Button
          a.attachTo(button, true)
