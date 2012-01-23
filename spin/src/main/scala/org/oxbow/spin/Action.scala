@@ -27,7 +27,7 @@ trait Action extends Serializable {
    private lazy val components = scala.collection.mutable.ListBuffer[ComponentProxy]()
    private lazy val props = scala.collection.mutable.Map[Attribute, Any]()
 
-   private def setProp(attr: Attribute, value: Any): Unit = {
+   private def setProperty(attr: Attribute, value: Any): Unit = {
       if ( props.get(attr) != value) {
          props += attr -> value
          propertyChange( attr, value )
@@ -35,16 +35,16 @@ trait Action extends Serializable {
    }
    
    def caption: String = props.getOrElse(Caption, "").asInstanceOf[String]
-   def caption_=(caption: String) = setProp( Caption, caption )
+   def caption_=(caption: String) = setProperty( Caption, caption )
 
    def enabled: Boolean = props.getOrElse(Enabled, true).asInstanceOf[Boolean]
-   def enabled_=(enabled: Boolean) = setProp( Enabled, enabled )
+   def enabled_=(enabled: Boolean) = setProperty( Enabled, enabled )
 
    def icon: Option[ThemeResource] = props.getOrElse(Icon, None).asInstanceOf[Option[ThemeResource]]
-   def icon_=(icon: Option[ThemeResource]) = setProp( Icon,icon )
+   def icon_=(icon: Option[ThemeResource]) = setProperty( Icon,icon )
 
    def tooltip: String = props.getOrElse(Tooltip, "").asInstanceOf[String]
-   def tooltip_=(tooltip: String) = setProp( Tooltip, tooltip)
+   def tooltip_=(tooltip: String) = setProperty( Tooltip, tooltip)
 
    protected[spin] def attachTo(cmpt: AbstractComponent, toolbar:Boolean = false ) = Option(cmpt).foreach(components += setup(_, toolbar))
    protected[spin] def attachTo(menuItem: MenuItem) = Option(menuItem).foreach(components += setup(_))
@@ -54,7 +54,7 @@ trait Action extends Serializable {
       .caption( if (( !toolbar || icon.isEmpty )) caption else "" )
    }
 
-   private def propertyChange( attr: Attribute, value: Any ) = components.foreach( _.setProp(attr, value))
+   private def propertyChange( attr: Attribute, value: Any ) = components.foreach( _.setProperty(attr, value))
 
    protected[spin] def asMenuCommand: Command = new Command {
       def menuSelected(selectedItem: MenuBar#MenuItem) = execute(selectedItem)
@@ -65,7 +65,7 @@ trait Action extends Serializable {
    
    private[Action] case class ComponentProxy(val target: Any) {
 	
-	   def setProp(attr: Attribute, value: Any): Unit = attr match {
+	   def setProperty(attr: Attribute, value: Any): Unit = attr match {
 	       case Caption  => caption(value.asInstanceOf[String])
 	       case Enabled  => enabled(value.asInstanceOf[Boolean])
 	       case Icon     => icon(value.asInstanceOf[Option[ThemeResource]])
@@ -110,10 +110,10 @@ trait Action extends Serializable {
 object ActionSeq {
 
    def apply(title: String, actions: Action*): ActionSeq = new ActionSeq(title, actions.toSeq)
-   def apply(actions: Action*): ActionSeq = new ActionSeq("", actions.toList)
+//   def apply(actions: Action*): ActionSeq = new ActionSeq("", actions.toSeq)
 
-   def apply(title: String, actions: List[Action]): ActionSeq = new ActionSeq(title, actions)
-   def apply(actions: List[Action]): ActionSeq = new ActionSeq("", actions)
+   def apply(title: String = "", actions: Iterable[Action]): ActionSeq = new ActionSeq(title, actions.toSeq)
+   //def apply(actions: List[Action]): ActionSeq = new ActionSeq("", actions)
 
 }
 
